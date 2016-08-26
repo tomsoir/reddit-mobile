@@ -78,7 +78,7 @@ function initialize(bindLinks) {
   const $body = document.body || document.getElementsByTagName('body')[0];
   setAppMethods(app, $body, render, history);
 
-  if (app.getState('token')) {
+  if (app.getState('session')) {
     app.setTokenRefresh(app, app.getState('tokenExpires'));
   } else if (!cookies.get('loid')) {
     setLoggedOutCookies(cookies, app);
