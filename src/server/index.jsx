@@ -501,7 +501,7 @@ class Server {
       } catch (e) {
         // if the refresh endpoint fails, there's not much we can do
         // womp womp
-        clearSessionCookies(this.cookies);
+        clearSessionCookies(this);
         app.error(e, this, app, { redirect: false, replaceBody: false });
         this.redirect('/');
       }

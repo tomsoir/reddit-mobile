@@ -1,6 +1,10 @@
 import { atob, btoa } from 'Base64';
 import config from '../config';
 
+export const SEPERATOR = '.';
+export const VERSION = 2;
+export const MAX_AGE_TWO_YEARS = 1000 * 60 * 60 * 24 * 365 * 2;
+
 export const getSession = ctx => {
   const tokenCookie = ctx.cookies.get('token');
   const oldExpiresCookie = ctx.cookies.get('tokenExpires');
@@ -17,46 +21,43 @@ export const getSession = ctx => {
   // token cookie is expected to always be a base64 string, period should always be excluded.
   // we use period to split chunks
   if (tokenCookie.indexOf('.') === -1) {
-    if (!oldExpiresCookie || !oldRefreshCookie) {
-      // we have a token cookie that looks like the new format, but we
-      // don't have the expiration and refreshToken, just clear auth cookies
-      clearSessionCookies(ctx.cookies);
-      return;
+    // We know this is the old cookie format, we should clear all cookies,
+    // and then convert to 2X style if possible.
+    clearSessionCookies(ctx);
+
+    if (oldExpiresCookie && oldRefreshCookie) {
+      const newSession = {
+        accessToken: tokenCookie,
+        expires: (new Date(oldExpiresCookie)).getTime(),
+        refreshToken: oldRefreshCookie,
+      };
+
+      setSessionCookies(ctx, newSession);
+      return newSession;
     }
 
-    // clear the old tokenExpires and refreshToken cookies
-    clearSessionCookies(ctx.cookies);
-
-    const newSession = {
-      accessToken: tokenCookie,
-      expires: oldExpiresCookie,
-      refreshToken: oldRefreshCookie,
-    };
-
-    setSessionCookies(ctx, newSession);
-    return newSession;
+    return;
   }
 
-  const [payloadBase64, version] = tokenCookie.split('.');
-  if (parseInt(version, 10) !== 2) { // old format is implicit version 1
+  const [payloadBase64, version] = tokenCookie.split(SEPERATOR);
+  if (parseInt(version, 10) !== VERSION) { // old format is implicit version 1
     // this is mostly a sanity check. if the version is not 2 then the the cookie
     // is malformed somehow, or is a new format we don't expect.
-    clearSessionCookies(ctx.cookies);
+    clearSessionCookies(ctx);
     return;
   }
 
   try {
     const session = JSON.parse(atob(payloadBase64));
     if (!session || !session.accessToken || !session.refreshToken || !session.expires) {
-      clearSessionCookies(ctx.cookies);
+      clearSessionCookies(ctx);
       return;
     }
 
     return session;
   } catch (e) {
     // clear the malformed cookies
-    clearSessionCookies(ctx.cookies);
-    // implicit return
+    clearSessionCookies(ctx);
   }
 };
 
@@ -64,12 +65,24 @@ export const COOKIE_OPTIONS = {
   secure: config.https,
   secureProxy: config.httpsProxy,
   httpOnly: true,
-  maxAge: 1000 * 60 * 60 * 24 * 365,
+  maxAge: MAX_AGE_TWO_YEARS,
 };
 
 export const setSessionCookies = (ctx, session) => {
-  const payloadBase64 = btoa(JSON.stringify(session));
-  const token = `${payloadBase64}.2`; // version 2
+  if (session.expires instanceof Date) {
+    console.trace('\n\n\nctx shouldnt have actual date');
+    console.log(session);
+    console.log(ctx);
+    console.log('\n\n\n');
+  }
+
+  const sessionForCookie = {
+    ...session,
+    expires: (new Date(session.expires)).getTime(),
+  };
+
+  const payloadBase64 = btoa(JSON.stringify(sessionForCookie));
+  const token = `${payloadBase64}${SEPERATOR}${VERSION}`; // version 2
 
   // Set the token cookie to be on the root reddit domain
   // if we're not running a local copy
@@ -85,23 +98,22 @@ export const setSessionCookies = (ctx, session) => {
   ctx.cookies.set('token', token, options);
 };
 
-
 export const SESSION_COOKIES = [
   'token',
   'tokenExpires',
   'refreshToken',
 ];
 
-export const clearSessionCookies = cookies => {
+export const clearSessionCookies = ctx => {
   const rootOptions = { domain: config.rootReddit };
 
-  SESSION_COOKIES.map(cookieName => {
+  SESSION_COOKIES.forEach(cookieName => {
     // clear the cookie and it's signed version for `m.reddit`
-    cookies.set(cookieName);
-    cookies.set(`${cookieName}.sig`);
+    ctx.cookies.set(cookieName);
+    ctx.cookies.set(`${cookieName}.sig`);
     // clear the cookie and it's signed version from `.reddit`
-    cookies.set(cookieName, undefined, rootOptions);
-    cookies.set(`${cookieName}.sig`, undefined, rootOptions);
+    ctx.cookies.set(cookieName, undefined, rootOptions);
+    ctx.cookies.set(`${cookieName}.sig`, undefined, rootOptions);
   });
 };
 
@@ -114,7 +126,7 @@ export const oauthTokenToSession = token => {
 
   return {
     accessToken,
-    expires,
+    expires: expires.getTime(),
     refreshToken,
   };
 };

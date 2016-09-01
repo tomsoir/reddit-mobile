@@ -291,7 +291,7 @@ const oauthRoutes = function(app) {
   });
 
   router.get('/logout', function * () {
-    clearSessionCookies(this.cookies);
+    clearSessionCookies(this);
     this.cookies.set('over18', false);
     this.cookies.set('reddit_session', undefined, {
       domain: '.reddit.com',
@@ -316,7 +316,7 @@ const oauthRoutes = function(app) {
 
       this.body = freshSession;
     } catch (e) {
-      clearSessionCookies(this.cookies);
+      clearSessionCookies(this);
     }
   });
 
@@ -473,8 +473,7 @@ const oauthRoutes = function(app) {
           resolve();
         }
 
-        const message = obj.message ?
-         `&message=${obj.message}` : '';
+        const message = obj.message ? `&message=${obj.message}` : '';
         return reject(`/login?error=${obj.errorType}${message}${ctx.queryPath}`);
       }
 

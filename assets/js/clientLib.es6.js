@@ -130,7 +130,7 @@ export function refreshToken (app) {
         });
 
         if (session.refreshToken) {
-          Object.asseign(app.getState('ctx').redditSession, {
+          Object.assign(app.getState('ctx').redditSession, {
             refreshToken: session.refreshToken,
           });
         }
