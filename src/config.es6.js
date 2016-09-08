@@ -32,11 +32,14 @@ function config() {
   // NOTE: It's very important that this is the root domain and not any
   // subdomain. Used for setting cookies, could cause issues like
   // losing authentication or infinite redirect loops if it doesn't work.
-  const rootReddit = reddit
+  const redditDomainParts = reddit
     .match(/https?:\/\/(.+)/)[1]
-    .split('.')
-    .splice(1,2)
-    .join('.');
+    .split('.');
+
+  // Get the last two parts if the domain has multiple subdmaoins
+  const rootReddit = redditDomainParts.length < 2
+    ? redditDomainParts.join('.')
+    : redditDomainParts.splice(redditDomainParts.length - 2, 2).join('.');
 
   return {
     https: process.env.HTTPS === 'true',
