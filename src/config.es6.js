@@ -33,7 +33,7 @@ function config() {
   // subdomain. Used for setting cookies, could cause issues like
   // losing authentication or infinite redirect loops if it doesn't work.
   const redditDomainParts = reddit
-    .match(/https?:\/\/(.+)/)[1]
+    .match(/^https?:\/\/([^\/]+)/)[1]
     .split('.');
 
   // Get the last two parts if the domain has multiple subdmaoins
