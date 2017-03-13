@@ -42,7 +42,8 @@ const UserProfileBanner = props => {
     <div className='UserProfileHeader__banner'>
       <h3 className='UserProfileHeader__banner-user-name'>u/{ userName }</h3>
       { isVerified && <div className='UserProfileHeader__verified icon icon-verified lime' /> }
-      { userSubreddit && !isMyUser && <SubredditSubscribeForm
+      { userSubreddit && !isMyUser && 
+        <SubredditSubscribeForm
           subredditName={ userSubreddit.toLowerCase() }
           className='CommunityHeader-subscribe-form CommunityHeader-no-outline'
           renderBody={ renderFollowButton }
