@@ -28,8 +28,12 @@ export const HIDE = 'XPROMO__HIDE';
 export const hide = () => ({ type: HIDE });
 
 export const PROMO_CLICKED = 'XPROMO__PROMO_CLICKED';
-export const promoClicked = () => ({ type: PROMO_CLICKED });
-
+export const promoClicked = (isXPromoPersistDisplay=false) => async (dispatch) => {
+  markBannerClosed();
+  if (!isXPromoPersistDisplay) {
+    dispatch({ type: PROMO_CLICKED });
+  }
+};
 export const PROMO_SCROLLSTART = 'XPROMO__SCROLLSTART';
 export const promoScrollStart = () => ({ type: PROMO_SCROLLSTART });
 export const PROMO_SCROLLPAST = 'XPROMO__SCROLLPAST';
@@ -39,6 +43,14 @@ export const promoScrollUp = () => ({ type: PROMO_SCROLLUP });
 
 export const CAN_LISTING_CLICK = 'XPROMO__CAN_LISTING_CLICK';
 export const canListingClick = () => ({ type: CAN_LISTING_CLICK });
+
+export const PROMO_DISMISS_CLICKED = 'XPROMO_DISMISS_CLICKED';
+export const promoDismissed = (dismissType) => async (dispatch) => {
+  dispatch({ type: PROMO_DISMISS_CLICKED });
+  if (dismissType) {
+    dispatch(trackXPromoEvent(XPROMO_DISMISS, { dismiss_type: dismissType }));
+  }
+};
 
 export const MARK_LISTING_CLICK_TIMESTAMP = 'XPROMO__MARK_LISTING_CLICK_TIMESTAMP';
 export const markListingClickTimeStamp = () => async (dispatch) => {
@@ -106,7 +118,6 @@ const EXTERNAL_PREF_NAME = 'hide_mweb_xpromo_banner';
 export const close = () => async (dispatch, getState) => {
   markBannerClosed();
   dispatch(hide());
-
   // We use a separate externally-visible name/value for the preference for
   // clarity when analyzing these events in our data pipeline.
   trackPreferenceEvent(getState(), {
@@ -115,7 +126,6 @@ export const close = () => async (dispatch, getState) => {
       [EXTERNAL_PREF_NAME]: true,
     },
   });
-
 };
 
 export const checkAndSet = () => async (dispatch, getState) => {

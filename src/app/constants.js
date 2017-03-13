@@ -140,11 +140,14 @@ export const flags = {
   RULES_MODAL_ON_COMMENT_CLICK_BUTTON: 'rulesModalOnCommentClickButton',
   RULES_MODAL_ON_SUBMIT_CLICK_ANYWHERE: 'rulesModalOnSubmitClickAnywhere',
   RULES_MODAL_ON_SUBMIT_CLICK_BUTTON: 'rulesModalOnSubmitClickButton',
+  VARIANT_XPROMO_PERSISTENT_IOS: 'experimentXPromoPersistentIos',
+  VARIANT_XPROMO_PERSISTENT_ANDROID: 'experimentXPromoPersistentAndroid',
 };
 
 export const xpromoDisplayTheme = {
   USUAL: 'transparent',
   MINIMAL: 'black_banner_fixed_bottom',
+  PERSIST: 'black_banner_fixed_bottom_without_dismiss',
 };
 
 export const themes = {
@@ -164,12 +167,16 @@ export const genericErrors = {
   UNKNOWN_ERROR: 'UNKNOWN_ERROR',
 };
 
+export const EVERY_TIME = 'every_time';
 export const EVERY_DAY = 'every_day';
 export const EVERY_THREE_DAYS = 'every_three_days';
 export const EVERY_WEEK = 'every_week';
 export const EVERY_TWO_WEEKS = 'every_two_weeks';
 
+export const XPROMO_DEFAULT_CLOSING_RANGE = EVERY_TWO_WEEKS;
+
 export const experimentFrequencyVariants = {};
+experimentFrequencyVariants[EVERY_TIME] = 0;
 experimentFrequencyVariants[EVERY_DAY] = 24 * 60 * 60 * 1000;
 experimentFrequencyVariants[EVERY_THREE_DAYS] = 3 * 24 * 60 * 60 * 1000;
 experimentFrequencyVariants[EVERY_WEEK] = 1 * 7 * 24 * 60 * 60 * 1000;
