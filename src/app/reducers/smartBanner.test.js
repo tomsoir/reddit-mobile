@@ -138,5 +138,17 @@ createTest({ reducers: { smartBanner }, routes }, ({ getStore, expect }) => {
         expect(showBanner).to.eql(true);
       });
     });
+
+    describe('PROMO_DISMISS_CLICKED', () => {
+      it('should change `dismissed` to be false', () => {
+        const { store } = getStore({ smartBanner: {
+          ...DEFAULT,
+          dismissed: false,
+        }});
+        store.dispatch({ type: xpromoActions.PROMO_DISMISS_CLICKED });
+        const { smartBanner } = store.getState();
+        expect(smartBanner.dismissed).to.eql(true);
+      });
+    });
   });
 });

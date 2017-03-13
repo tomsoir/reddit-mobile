@@ -4,6 +4,7 @@ import {
   flags as flagConstants,
   themes,
   xpromoDisplayTheme,
+  EVERY_TIME,
   XPROMO_LISTING_CLICK_EVENTS_NAME,
 } from 'app/constants';
 
@@ -11,12 +12,11 @@ import features, { isNSFWPage } from 'app/featureFlags';
 import getRouteMetaFromState from 'lib/getRouteMetaFromState';
 import { getExperimentData } from 'lib/experiments';
 import { getDevice, IPHONE, ANDROID } from 'lib/getDeviceFromState';
-
-import { shouldNotListingClick } from 'lib/smartBannerState';
 import { trackXPromoIneligibleEvent } from 'lib/eventUtils';
+import { shouldNotListingClick } from 'lib/smartBannerState';
 
 const { DAYMODE } = themes;
-const { USUAL, MINIMAL } = xpromoDisplayTheme;
+const { USUAL, MINIMAL, PERSIST } = xpromoDisplayTheme;
 
 const {
   VARIANT_XPROMO_LOGIN_REQUIRED_IOS,
@@ -32,6 +32,8 @@ const {
   VARIANT_XPROMO_LISTING_CLICK_EVERY_TIME_ANDROID_ENABLED,
   VARIANT_XPROMO_INTERSTITIAL_FREQUENCY_IOS,
   VARIANT_XPROMO_INTERSTITIAL_FREQUENCY_ANDROID,
+  VARIANT_XPROMO_PERSISTENT_IOS,
+  VARIANT_XPROMO_PERSISTENT_ANDROID,
 } = flagConstants;
 
 const EXPERIMENT_FULL = [
@@ -39,6 +41,8 @@ const EXPERIMENT_FULL = [
   VARIANT_XPROMO_LOGIN_REQUIRED_ANDROID,
   VARIANT_XPROMO_LOGIN_REQUIRED_IOS_CONTROL,
   VARIANT_XPROMO_LOGIN_REQUIRED_ANDROID_CONTROL,
+  VARIANT_XPROMO_PERSISTENT_IOS,
+  VARIANT_XPROMO_PERSISTENT_ANDROID,
   VARIANT_XPROMO_INTERSTITIAL_FREQUENCY_IOS,
   VARIANT_XPROMO_INTERSTITIAL_FREQUENCY_ANDROID,
 ];
@@ -68,6 +72,11 @@ const INTERSTITIAL_FREQUENCY_FLAGS = [
   VARIANT_XPROMO_INTERSTITIAL_FREQUENCY_ANDROID,
 ];
 
+const XPROMO_PERSISTENT_FLAGS = [
+  VARIANT_XPROMO_PERSISTENT_IOS,
+  VARIANT_XPROMO_PERSISTENT_ANDROID,
+];
+
 const EXPERIMENT_NAMES = {
   [VARIANT_XPROMO_LOGIN_REQUIRED_IOS]: 'mweb_xpromo_require_login_ios',
   [VARIANT_XPROMO_LOGIN_REQUIRED_ANDROID]: 'mweb_xpromo_require_login_android',
@@ -81,6 +90,8 @@ const EXPERIMENT_NAMES = {
   [VARIANT_XPROMO_LISTING_CLICK_EVERY_TIME_ANDROID_ENABLED]: 'mweb_xpromo_every_time_listing_click_android',
   [VARIANT_XPROMO_INTERSTITIAL_FREQUENCY_IOS]: 'mweb_xpromo_interstitial_frequency_ios',
   [VARIANT_XPROMO_INTERSTITIAL_FREQUENCY_ANDROID]: 'mweb_xpromo_interstitial_frequency_android',
+  [VARIANT_XPROMO_PERSISTENT_IOS]: 'mweb_xpromo_persistent_ios',
+  [VARIANT_XPROMO_PERSISTENT_ANDROID]: 'mweb_xpromo_persistent_android',
 };
 
 export function getRouteActionName(state) {
@@ -102,6 +113,9 @@ function activeXPromoExperimentName(state, flags=EXPERIMENT_FULL) {
 }
 
 export function xpromoTheme(state) {
+  if (isXPromoPersistent(state) && dismissedState(state)) {
+    return PERSIST;
+  }
   switch (getRouteActionName(state)) {
     case 'comments':
       return MINIMAL;
@@ -238,15 +252,30 @@ export function listingClickExperimentData(state) {
  * - listingClickExperimentData
  * - getFrequencyExperimentData
  * - currentExperimentData
+ * - isXPromoPersistent
  */
-export function getFrequencyExperimentData(state) {
+export function getExperimentRange(state) {
+  // For persistentent experimant
+  // checking it first to trigger bucketing 
+  // event for Persistent experiment first
+  if (isXPromoPersistent(state)) {
+    return EVERY_TIME;
+  }
+  // For frequency experiment
   const experimentName = activeXPromoExperimentName(state, INTERSTITIAL_FREQUENCY_FLAGS);
-  return getExperimentData(state, experimentName);
+  const experimentData = getExperimentData(state, experimentName);
+  if (experimentData) {
+    return experimentData.variant;
+  }
 }
 
 export function currentExperimentData(state) {
   const experimentName = activeXPromoExperimentName(state);
   return getExperimentData(state, experimentName);
+}
+
+export function isXPromoPersistent(state) {
+  return anyFlagEnabled(state, XPROMO_PERSISTENT_FLAGS);
 }
 
 export function scrollPastState(state) {
@@ -255,6 +284,9 @@ export function scrollPastState(state) {
 
 export function scrollStartState(state) {
   return state.smartBanner.scrolledStart;
+}
+export function dismissedState(state) {
+  return state.smartBanner.dismissed;
 }
 
 export function shouldShowXPromo(state) {
@@ -268,7 +300,6 @@ export function interstitialType(state) {
     if (state.smartBanner.showingListingClickInterstitial) {
       return XPROMO_LISTING_CLICK_EVENTS_NAME;
     }
-
     if (loginRequiredEnabled(state)) {
       return 'require_login';
     }
@@ -280,7 +311,7 @@ export function interstitialType(state) {
 }
 
 export function isPartOfXPromoExperiment(state) {
-  return shouldShowXPromo(state) && !!activeXPromoExperimentName(state);
+  return shouldShowXPromo(state) && anyFlagEnabled(state);
 }
 
 export function XPromoIsActive(state) {

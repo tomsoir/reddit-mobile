@@ -13,6 +13,7 @@ export const DEFAULT = {
   loginRequired: false,
   scrolledPast: false,
   scrolledStart: false,
+  dismissed: false,
 };
 
 export default function(state=DEFAULT, action={}) {
@@ -60,7 +61,6 @@ export default function(state=DEFAULT, action={}) {
     }
 
     case xpromoActions.PROMO_CLICKED: {
-      markBannerClosed();
       return merge(state, {
         showBanner: false,
       });
@@ -87,6 +87,12 @@ export default function(state=DEFAULT, action={}) {
     case xpromoActions.MARK_LISTING_CLICK_TIMESTAMP: {
       return merge(state, {
         canListingClick: false,
+      });
+    }
+
+    case xpromoActions.PROMO_DISMISS_CLICKED: {
+      return merge(state, {
+        dismissed: true,
       });
     }
 
