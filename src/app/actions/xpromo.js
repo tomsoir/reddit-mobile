@@ -27,6 +27,18 @@ export const show = () => ({ type: SHOW });
 export const HIDE = 'XPROMO__HIDE';
 export const hide = () => ({ type: HIDE });
 
+
+
+
+export const PROMO_SHOW = 'XPROMO__SHOW__ONLY';
+export const promoShowOnly = () => ({ type: PROMO_SHOW });
+
+export const PROMO_HIDE = 'XPROMO__HIDE__ONLY';
+export const promoHideOnly = () => ({ type: PROMO_HIDE });
+
+
+
+
 export const PROMO_CLICKED = 'XPROMO__PROMO_CLICKED';
 export const promoClicked = (isXPromoPersistDisplay=false) => async (dispatch) => {
   markBannerClosed();
@@ -46,10 +58,14 @@ export const canListingClick = () => ({ type: CAN_LISTING_CLICK });
 
 export const PROMO_DISMISS_CLICKED = 'XPROMO_DISMISS_CLICKED';
 export const promoDismissed = (dismissType) => async (dispatch) => {
+  markBannerClosed();
   dispatch({ type: PROMO_DISMISS_CLICKED });
   if (dismissType) {
     dispatch(trackXPromoEvent(XPROMO_DISMISS, { dismiss_type: dismissType }));
   }
+};
+export const promoDismissedOnly = () => async (dispatch) => {
+  dispatch({ type: PROMO_DISMISS_CLICKED });
 };
 
 export const MARK_LISTING_CLICK_TIMESTAMP = 'XPROMO__MARK_LISTING_CLICK_TIMESTAMP';

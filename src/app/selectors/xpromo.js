@@ -12,7 +12,7 @@ import features, { isNSFWPage } from 'app/featureFlags';
 import getRouteMetaFromState from 'lib/getRouteMetaFromState';
 import { getExperimentData } from 'lib/experiments';
 import { getDevice, IPHONE, ANDROID } from 'lib/getDeviceFromState';
-import { shouldNotListingClick } from 'lib/xpromoState';
+import { shouldNotListingClick, isXpromoClosed } from 'lib/xpromoState';
 import { trackXPromoIneligibleEvent } from 'lib/eventUtils';
 
 const { DAYMODE } = themes;
@@ -113,7 +113,7 @@ function activeXPromoExperimentName(state, flags=EXPERIMENT_FULL) {
 }
 
 export function xpromoTheme(state) {
-  if (isXPromoPersistent(state) && dismissedState(state)) {
+  if (isXPromoPersistent(state) && dismissedState(state) || isXpromoClosed(state)) {
     return PERSIST;
   }
   switch (getRouteActionName(state)) {
@@ -287,6 +287,9 @@ export function scrollStartState(state) {
 }
 export function dismissedState(state) {
   return state.xpromo.dismissed;
+}
+export function visibilityState(state) {
+  return state.xpromo.visibility;
 }
 
 export function shouldShowXPromo(state) {

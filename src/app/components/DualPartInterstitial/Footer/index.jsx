@@ -7,6 +7,7 @@ import url from 'url';
 
 import { redirect } from 'platform/actions';
 import * as xpromoActions from 'app/actions/xpromo';
+import * as xpromoPersist from 'lib/xpromoPersistState';
 import getSubreddit from 'lib/getSubredditFromState';
 import { getXPromoLinkforCurrentPage } from 'lib/xpromoState';
 import {
@@ -50,7 +51,9 @@ class DualPartInterstitialFooter extends React.Component {
     if (requireLogin) {
       dispatch(redirect(this.loginLink()));
     } else {
-      if (!persistXPromoState) {
+      if (persistXPromoState) {
+        xpromoPersist.setLocalStorage()
+      } else {
         dispatch(xpromoActions.close());
       }
       dispatch(xpromoActions.promoDismissed('link'));
@@ -74,6 +77,7 @@ class DualPartInterstitialFooter extends React.Component {
       nativeInterstitialLink,
       navigator,
       requireLogin,
+      persistXPromoState,
     } = this.props;
 
     let dismissal;
@@ -94,6 +98,7 @@ class DualPartInterstitialFooter extends React.Component {
 
     const pageName = subredditName ? `r/${ subredditName }` : 'Reddit';
     const subtitleText = `View ${ pageName } in the app because you deserve the best.`;
+    const buttonText = persistXPromoState ? 'Open in app' : 'Continue';
 
     return (
       <div className='DualPartInterstitialFooter'>
@@ -105,7 +110,7 @@ class DualPartInterstitialFooter extends React.Component {
           <div className='DualPartInterstitialFooter__button' 
             onClick={ navigator(nativeInterstitialLink) }
           >
-            Continue
+            { buttonText }
           </div>
           <div className='DualPartInterstitialFooter__dismissal'>
             { dismissal }

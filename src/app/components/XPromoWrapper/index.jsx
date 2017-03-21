@@ -1,19 +1,58 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
-
 import * as xpromoActions from 'app/actions/xpromo';
+import * as xpromoPersist from 'lib/xpromoPersistState';
 import { XPROMO_SCROLLPAST, XPROMO_SCROLLUP } from 'lib/eventUtils';
+
 import { 
   xpromoThemeIsUsual,
   scrollPastState,
   scrollStartState,
   isXPromoPersistent,
+  dismissedState,
 } from 'app/selectors/xpromo';
 
 const T = React.PropTypes;
 
 class XPromoWrapper extends React.Component {
+  static propTypes = {
+    recordXPromoShown: T.func.isRequired,
+  };
+
+  displayPersistBannerByTimer() {
+    const {
+      dispatch,
+      dismissedState 
+    } = this.props;
+
+    const statusCallback = (status) => {
+      switch(status){
+        case xpromoPersist.status.MAKE_VISIBLE: {
+          dispatch(xpromoActions.promoShowOnly());
+          break;
+        }
+        case xpromoPersist.status.SHOW__SAME_SESSION: {
+          dispatch(xpromoActions.promoShowOnly());
+          break;
+        }
+        case xpromoPersist.status.SHOW__NEW_SESSION: {
+          dispatch(xpromoActions.promoDismissedOnly());
+          dispatch(xpromoActions.promoShowOnly());
+          break;
+        }
+        default: {
+          dispatch(xpromoActions.promoHideOnly());
+        }
+      }
+    }
+
+    xpromoPersist.runStatusCheck(
+      dismissedState,
+      statusCallback
+    )
+  }
+
   onScroll = () => {
     // For now we will consider scrolling half the
     // viewport "scrolling past" the interstitial.
@@ -22,7 +61,8 @@ class XPromoWrapper extends React.Component {
       dispatch, 
       alreadyScrolledStart, 
       alreadyScrolledPast, 
-      xpromoThemeIsUsual, 
+      xpromoThemeIsUsual,
+      isXPromoPersistent,
     } = this.props;
 
     // should appears only once on the start
@@ -74,20 +114,26 @@ class XPromoWrapper extends React.Component {
     return isPastHalfViewport;
   }
 
-  componentDidMount() {
-    this.toggleOnScroll(true);
-  }
-
-  componentWillUnmount() {
-    this.toggleOnScroll(false);
-  }
-
   toggleOnScroll(state) {
     if (state) {
       window.addEventListener('scroll', this.onScroll);
     } else {
       window.removeEventListener('scroll', this.onScroll);
     }
+  }
+
+  componentWillMount() {
+    if (this.props.isXPromoPersistent) {
+      this.displayPersistBannerByTimer();
+    }
+  }
+
+  componentDidMount() {
+    this.toggleOnScroll(true);
+  }
+
+  componentWillUnmount() {
+    this.toggleOnScroll(false);
   }
 
   render() {
@@ -100,6 +146,8 @@ const selector = createStructuredSelector({
   alreadyScrolledStart: state => scrollStartState(state),
   alreadyScrolledPast: state => scrollPastState(state),
   xpromoThemeIsUsual: state => xpromoThemeIsUsual(state),
+  isXPromoPersistent: state => isXPromoPersistent(state),
+  dismissedState: state => dismissedState(state),
 });
 
 export default connect(selector)(XPromoWrapper);
