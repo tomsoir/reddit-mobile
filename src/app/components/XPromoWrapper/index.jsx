@@ -91,10 +91,8 @@ class XPromoWrapper extends React.Component {
 
       // For other cases we dont 
       // need to show up the bunner
-      
       displayToggle(false);
       console.error('> HIDE AND STOP TIMER ->', 'hide');
-      
     };
 
     /*
