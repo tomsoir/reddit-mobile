@@ -7,6 +7,7 @@ import url from 'url';
 
 import { redirect } from 'platform/actions';
 import * as xpromoActions from 'app/actions/xpromo';
+import * as xpromoPersist from 'lib/xpromoPersistState';
 import getSubreddit from 'lib/getSubredditFromState';
 import { getXPromoLinkforCurrentPage } from 'lib/smartBannerState';
 import { loginRequiredEnabled as requireXPromoLogin } from 'app/selectors/xpromo';
@@ -49,7 +50,7 @@ class DualPartInterstitialFooter extends React.Component {
       dispatch(redirect(this.loginLink()));
     } else {
       if (persistXPromoState) {
-        localStorage.setItem('bannerPersistDisplay', JSON.stringify({ time: Date.now() }));
+        xpromoPersist.setLocalStorage()
       } else {
         dispatch(xpromoActions.close());
       }

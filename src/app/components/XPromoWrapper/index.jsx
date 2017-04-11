@@ -1,9 +1,10 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
-
 import * as xpromoActions from 'app/actions/xpromo';
+import * as xpromoPersist from 'lib/xpromoPersistState';
 import { XPROMO_SCROLLPAST, XPROMO_SCROLLUP } from 'lib/eventUtils';
+
 import { 
   xpromoThemeIsUsual,
   scrollPastState,
@@ -11,8 +12,6 @@ import {
   isXPromoPersistent,
   dismissedState,
 } from 'app/selectors/xpromo';
-
-
 
 let displayTimer;
 
@@ -34,24 +33,7 @@ class XPromoWrapper extends React.Component {
   };
 
   displayPersistBannerByTimer() {
-    /*
-     * CONFIG
-     */ 
     const { dispatch } = this.props;
-
-    /*
-     * LS CONTROLLER
-     */ 
-    const key = 'bannerPersistDisplay';
-    const getLocalStorageKey = () => {
-      const lskey = localStorage.getItem(key);
-      return lskey ? JSON.parse(lskey) : setLocalStorageKey({ time: Date.now() });
-    };
-    const setLocalStorageKey = (val) => {
-      const lsVal = JSON.stringify(val);
-      localStorage.setItem(key, lsVal);
-      return val;
-    };
 
     /*
      * DISPLAY CONTROLLER
@@ -65,25 +47,24 @@ class XPromoWrapper extends React.Component {
      * CHECKER
      */ 
     const checker = () => {
-
       // Check if banner was NOT dismissed? 
       // @TODO use constant instead...
-      if (!localStorage.getItem('bannerLastClosed')) {
+      if (!xpromoPersist.isXpromoClosed()) {
         return displayToggle(true);
       }
 
-      const param = getLocalStorageKey();
+      const lsTime = xpromoPersist.getLocalStorage();
 
       // Can we show the banner?
-      if (Date.now() <= (param.time + config.showTime)) {
+      if (Date.now() <= (lsTime + config.showTime)) {
         console.error('> LESS SHOW TIME ->', 'show');
         return displayToggle(true);
       } else 
 
       // If more then HIDE time 
       // and the session is new -> show the banner.
-      if ((Date.now() > (param.time + config.hideTime)) && !this.props.dismissedState) {
-        setLocalStorageKey({ time: Date.now() });
+      if ((Date.now() > (lsTime + config.hideTime)) && !this.props.dismissedState) {
+        xpromoPersist.setLocalStorage();
         dispatch(xpromoActions.promoDismissedOnly());
         console.error('> OVER HIDE TIME && NEW SESSION ->', 'change to show');
         return displayToggle(true);
