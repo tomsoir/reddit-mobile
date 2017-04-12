@@ -6,26 +6,42 @@ const {
   BANNER_PERSIST_SHOWED 
 } = ls;
 
+let displayTimer;
+
+export const timer = {
+  stop: () => { 
+    clearTimeout(displayTimer) 
+  },
+  start: (cb) => {
+    if (cb()) {
+      displayTimer = setTimeout(() => {
+        let callback = cb;
+        timer.start(callback);
+      }, 1000);
+    } else {
+      timer.stop();
+    }
+  }
+};
+
 export const isXpromoClosed = () => {
   if (localStorageAvailable()) {
     return !!localStorage.getItem(BANNER_LAST_CLOSED);
   }
-}
+};
 
 export const getLocalStorage = () => {
   if (localStorageAvailable()) {
     const time = localStorage.getItem(BANNER_PERSIST_SHOWED);
     return time ? (new Date(time)).getTime() : setLocalStorage();
   }
-}
+};
 
 export const setLocalStorage = () => {
   if (localStorageAvailable()) {
     return localStorage.setItem(BANNER_PERSIST_SHOWED, new Date());
   }
-}
-
-
+};
 
 
 

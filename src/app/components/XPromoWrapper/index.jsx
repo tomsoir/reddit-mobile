@@ -13,8 +13,6 @@ import {
   dismissedState,
 } from 'app/selectors/xpromo';
 
-let displayTimer;
-
 const config = { 
   showTime  : 1*10*1000,
   hideTime  : 1*20*1000,
@@ -31,6 +29,9 @@ class XPromoWrapper extends React.Component {
   static propTypes = {
     recordXPromoShown: T.func.isRequired,
   };
+
+
+
 
   displayPersistBannerByTimer() {
     const { dispatch } = this.props;
@@ -76,19 +77,8 @@ class XPromoWrapper extends React.Component {
       console.error('> HIDE AND STOP TIMER ->', 'hide');
     };
 
-    /*
-     * TIMER
-     */ 
-    clearTimeout(displayTimer);
-    const timer = () => {
-      if (checker()) {
-        displayTimer = setTimeout(timer, 1000);
-      } else {
-        clearTimeout(displayTimer);
-      }
-    };
-    timer.call(this);
-
+    xpromoPersist.timer.stop();
+    xpromoPersist.timer.start( checker );
   }
 
 
@@ -164,17 +154,9 @@ class XPromoWrapper extends React.Component {
     }
   }
 
-
-
-
-
-
-
   componentWillMount() {
     if (isXPromoPersistent) {
       this.displayPersistBannerByTimer();
-    } else {
-      clearTimeout(displayTimer);
     }
   }
 
