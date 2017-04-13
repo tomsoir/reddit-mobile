@@ -19,11 +19,6 @@ const config = {
   hideTime  : 1*20*1000,
 };
 
-// console.error('=================');
-// console.error('SHOW TIME:', `${config.showTime/1000}s`);
-// console.error('HIDE TIME:', `${(config.hideTime - config.showTime)/1000}s`);
-// console.error('=================');
-
 const timer = new TimeChecker(1000);
 
 const isXpromoClosed = () => {
@@ -51,23 +46,21 @@ const checkDisplayStatus = (dismissedState, callback) => {
 
   const lsTime = getLocalStorage();
 
-  // Can we show the persistent banner?
+  // Can we show the persistent banner 
+  // — show up the banner.
   if (Date.now() <= (lsTime + config.showTime)) {
-    console.error('> LESS SHOW TIME ->', 'show');
     callback(status.SHOW__SAME_SESSION);
     return true;
   }
-  // If more then HIDE time 
-  // and the session is new -> show the banner.
+  // If more then HIDE time and the session is new 
+  // — change to show the banner
   if ((Date.now() > (lsTime + config.hideTime)) && !dismissedState) {
     setLocalStorage();
-    console.error('> OVER HIDE TIME && NEW SESSION ->', 'change to show');
     callback(status.SHOW__NEW_SESSION);
     return true;
   } 
-  // For other cases we dont 
-  // need to show up the bunner
-  console.error('> HIDE AND STOP TIMER ->', 'hide');
+  // For other cases we dont need to show up the bunner
+  // — stop timer and hide the banner 
   callback(status.HIDE__STOP_TIMER);
   return false
 }

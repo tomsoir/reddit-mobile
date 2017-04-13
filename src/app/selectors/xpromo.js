@@ -286,10 +286,10 @@ export function scrollStartState(state) {
   return state.xpromo.interstitials.scrolledStart;
 }
 export function dismissedState(state) {
-  return state.xpromo.dismissed;
+  return state.xpromo.interstitials.dismissed;
 }
 export function visibilityState(state) {
-  return state.xpromo.visibility;
+  return state.xpromo.interstitials.visibility;
 }
 
 export function shouldShowXPromo(state) {
