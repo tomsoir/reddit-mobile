@@ -13,16 +13,6 @@ import {
   dismissedState,
 } from 'app/selectors/xpromo';
 
-const config = { 
-  showTime  : 1*10*1000,
-  hideTime  : 1*20*1000,
-};
-
-console.error('=================');
-console.error('SHOW TIME:', `${config.showTime/1000}s`);
-console.error('HIDE TIME:', `${(config.hideTime - config.showTime)/1000}s`);
-console.error('=================');
-
 const T = React.PropTypes;
 
 class XPromoWrapper extends React.Component {
@@ -30,61 +20,38 @@ class XPromoWrapper extends React.Component {
     recordXPromoShown: T.func.isRequired,
   };
 
-
-
-
   displayPersistBannerByTimer() {
-    const { dispatch } = this.props;
+    const {
+      dispatch,
+      dismissedState 
+    } = this.props;
 
-    /*
-     * DISPLAY CONTROLLER
-     */
-    const displayToggle = (state) => {
-      dispatch(xpromoActions[state? 'promoShowOnly' : 'promoHideOnly']());
-      return state;
-    };
-
-    /*
-     * CHECKER
-     */ 
-    const checker = () => {
-      // Check if banner was NOT dismissed? 
-      // @TODO use constant instead...
-      if (!xpromoPersist.isXpromoClosed()) {
-        return displayToggle(true);
+    const statusCallback = (status) => {
+      switch(status){
+        case xpromoPersist.status.MAKE_VISIBLE: {
+          dispatch(xpromoActions.promoShowOnly());
+          break;
+        }
+        case xpromoPersist.status.SHOW__SAME_SESSION: {
+          dispatch(xpromoActions.promoShowOnly());
+          break;
+        }
+        case xpromoPersist.status.SHOW__NEW_SESSION: {
+          dispatch(xpromoActions.promoDismissedOnly());
+          dispatch(xpromoActions.promoShowOnly());
+          break;
+        }
+        default: {
+          dispatch(xpromoActions.promoHideOnly());
+        }
       }
+    }
 
-      const lsTime = xpromoPersist.getLocalStorage();
-
-      // Can we show the banner?
-      if (Date.now() <= (lsTime + config.showTime)) {
-        console.error('> LESS SHOW TIME ->', 'show');
-        return displayToggle(true);
-      } else 
-
-      // If more then HIDE time 
-      // and the session is new -> show the banner.
-      if ((Date.now() > (lsTime + config.hideTime)) && !this.props.dismissedState) {
-        xpromoPersist.setLocalStorage();
-        dispatch(xpromoActions.promoDismissedOnly());
-        console.error('> OVER HIDE TIME && NEW SESSION ->', 'change to show');
-        return displayToggle(true);
-      } 
-
-      // For other cases we dont 
-      // need to show up the bunner
-      displayToggle(false);
-      console.error('> HIDE AND STOP TIMER ->', 'hide');
-    };
-
-    xpromoPersist.timer.stop();
-    xpromoPersist.timer.start( checker );
+    xpromoPersist.runStatusCheck(
+      dismissedState,
+      statusCallback
+    )
   }
-
-
-
-
-
 
   onScroll = () => {
     // For now we will consider scrolling half the 
@@ -94,7 +61,8 @@ class XPromoWrapper extends React.Component {
       dispatch, 
       alreadyScrolledStart, 
       alreadyScrolledPast, 
-      xpromoThemeIsUsual, 
+      xpromoThemeIsUsual,
+      isXPromoPersistent,
     } = this.props;
 
     // should appears only once on the start
@@ -155,7 +123,7 @@ class XPromoWrapper extends React.Component {
   }
 
   componentWillMount() {
-    if (isXPromoPersistent) {
+    if (this.props.isXPromoPersistent) {
       this.displayPersistBannerByTimer();
     }
   }
@@ -181,6 +149,7 @@ const selector = createStructuredSelector({
   alreadyScrolledStart: state => scrollStartState(state),
   alreadyScrolledPast: state => scrollPastState(state),
   xpromoThemeIsUsual: state => xpromoThemeIsUsual(state),
+  isXPromoPersistent: state => isXPromoPersistent(state),
   dismissedState: state => dismissedState(state),
 });
 
