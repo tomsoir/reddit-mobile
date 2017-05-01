@@ -20,7 +20,7 @@ import {
   isXPromoPersistent,
 } from 'app/selectors/xpromo';
 
-class XPromoWrapper extends React.Component {
+export class XPromoWrapper extends React.Component {
 
   launchPersistentExperiment() {
     if (this.props.isXPromoPersistent) {
