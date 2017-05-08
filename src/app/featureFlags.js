@@ -229,6 +229,7 @@ const config = {
   },
   [VARIANT_XPROMO_INTERSTITIAL_FREQUENCY_IOS]: {
     and: [
+      { enabled: false },
       { allowedDevices: [IPHONE] },
       { or: [
         { variant: 'mweb_xpromo_interstitial_frequency_ios:every_day' },
@@ -240,6 +241,7 @@ const config = {
   },
   [VARIANT_XPROMO_INTERSTITIAL_FREQUENCY_ANDROID]: {
     and: [
+      { enabled: false },
       { allowedDevices: [ANDROID] },
       { or: [
         { variant: 'mweb_xpromo_interstitial_frequency_android:every_day' },
@@ -251,6 +253,7 @@ const config = {
   },
   [VARIANT_XPROMO_INTERSTITIAL_FREQUENCY_IOS_CONTROL]: {
     and: [
+      { enabled: false },
       { allowedDevices: [IPHONE] },
       { or: [
         { variant: 'mweb_xpromo_interstitial_frequency_ios:control_1' },
@@ -260,6 +263,7 @@ const config = {
   },
   [VARIANT_XPROMO_INTERSTITIAL_FREQUENCY_ANDROID_CONTROL]: {
     and: [
+      { enabled: false },
       { allowedDevices: [ANDROID] },
       { or: [
         { variant: 'mweb_xpromo_interstitial_frequency_android:control_1' },
